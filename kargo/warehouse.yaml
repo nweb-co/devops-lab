@@ -1,0 +1,11 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: nginx
+  namespace: devops-lab
+spec:
+  subscriptions:
+    - image:
+        repoURL: docker.io/library/nginx
+        imageSelectionStrategy: SemVer
+        discoveryLimit: 3
