@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: hello-staging
   namespace: argocd
+  annotations:
+    kargo.akuity.io/authorized-stage: devops-lab:staging
 spec:
   project: default
   source:

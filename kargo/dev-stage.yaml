@@ -1,0 +1,48 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: dev
+  namespace: devops-lab
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: nginx
+      sources:
+        direct: true
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          config:
+            repoURL: https://github.com/nweb-co/devops-lab.git
+            checkout:
+              - branch: main
+                path: ./repo
+
+        - uses: yaml-update
+          config:
+            path: ./repo/environments/dev/deployment.yaml
+            updates:
+              - key: spec.template.spec.containers.0.image
+                value: docker.io/library/nginx:${{ imageFrom("docker.io/library/nginx").Tag }}
+
+        - uses: git-commit
+          config:
+            path: ./repo
+            message: Promote Nginx in development
+
+        - uses: git-push
+          as: push
+          config:
+            path: ./repo
+
+        - uses: argocd-update
+          config:
+            apps:
+              - name: hello-dev
+                namespace: argocd
+                sources:
+                  - repoURL: https://github.com/nweb-co/devops-lab.git
+                    desiredRevision: ${{ outputs.push.commit }}
+                    updateTargetRevision: false
